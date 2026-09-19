@@ -14,8 +14,6 @@ jobs:
     env:
       SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
       LENSASSIST_KEYSTORE_PASSWORD: ${{ secrets.SIGNING_KEYSTORE_PASSWORD }}
-      LENSASSIST_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-      LENSASSIST_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v4

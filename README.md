@@ -64,14 +64,17 @@ base64 -w0 lensassist-sideload.jks              # Linux
 base64 -i lensassist-sideload.jks | tr -d '\n'  # macOS
 ```
 
-Add four repository secrets under `Settings → Secrets and variables → Actions`:
+Add two repository secrets under `Settings → Secrets and variables → Actions`:
 
 | Secret | Value |
 | --- | --- |
 | `SIGNING_KEYSTORE_BASE64` | the base64 blob from above |
-| `SIGNING_KEYSTORE_PASSWORD` | the keystore password |
-| `SIGNING_KEY_ALIAS` | `lensassist` |
-| `SIGNING_KEY_PASSWORD` | the key password (same as the keystore password unless you set another) |
+| `SIGNING_KEYSTORE_PASSWORD` | the password you gave keytool |
+
+That is the whole list. The alias is a name rather than a credential, so it is
+hardcoded as `lensassist` (override with `LENSASSIST_KEY_ALIAS` if you chose another),
+and a PKCS12 keystore cannot carry a key password that differs from the store
+password — keytool ignores a separate `-keypass` — so there is nothing else to set.
 
 Back up the `.jks` file. Losing it means future builds get a different signature and can
 no longer upgrade an installed copy — you would have to uninstall and reinstall, and any
@@ -85,8 +88,6 @@ Builds pick the key up from the environment, so a local signed build is just:
 ```bash
 LENSASSIST_KEYSTORE=$PWD/lensassist-sideload.jks \
 LENSASSIST_KEYSTORE_PASSWORD=... \
-LENSASSIST_KEY_ALIAS=lensassist \
-LENSASSIST_KEY_PASSWORD=... \
 ./gradlew assembleRelease
 ```
 

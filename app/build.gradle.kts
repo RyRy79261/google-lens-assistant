@@ -17,14 +17,13 @@ val versionPatch = 0 // x-release-please-patch
  */
 val signingStore: String? = System.getenv("LENSASSIST_KEYSTORE")
 val signingStorePassword: String? = System.getenv("LENSASSIST_KEYSTORE_PASSWORD")
-val signingKeyAlias: String? = System.getenv("LENSASSIST_KEY_ALIAS")
-val signingKeyPassword: String? = System.getenv("LENSASSIST_KEY_PASSWORD")
-val hasSigningKey = sequenceOf(
-    signingStore,
-    signingStorePassword,
-    signingKeyAlias,
-    signingKeyPassword,
-).none { it.isNullOrBlank() }
+
+// The alias is a name, not a credential, so it is not worth a secret. And a PKCS12
+// keystore cannot hold a key password that differs from the store password — keytool
+// ignores one if you pass it — so there is nothing separate to configure there either.
+val signingKeyAlias: String = System.getenv("LENSASSIST_KEY_ALIAS") ?: "lensassist"
+
+val hasSigningKey = !signingStore.isNullOrBlank() && !signingStorePassword.isNullOrBlank()
 
 android {
     namespace = "com.ryry79261.lensassist"
@@ -46,7 +45,7 @@ android {
                 storeFile = file(signingStore!!)
                 storePassword = signingStorePassword
                 keyAlias = signingKeyAlias
-                keyPassword = signingKeyPassword
+                keyPassword = signingStorePassword
             }
         }
     }
