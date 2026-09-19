@@ -3,9 +3,9 @@ package com.ryry79261.lensassist
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipDescription
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.ComponentName
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
@@ -81,7 +81,7 @@ object LensLauncher {
     }
 
     /**
-     * Every activity in the Google app that accepts a shared PNG, as "package/class".
+     * Every activity in the Google app that accepts a shared PNG.
      *
      * Resolved at runtime rather than pinned to a class name: Google renames these
      * between releases. There is usually more than one, which is why a plain
@@ -93,7 +93,7 @@ object LensLauncher {
             .queryIntentActivitiesCompat(googleAppIntent(Uri.EMPTY))
             .mapNotNull { it.activityInfo }
 
-    fun googleAppInstalled    fun googleAppInstalled(context: Context): Boolean =
+    fun googleAppInstalled(context: Context): Boolean =
         runCatching {
             context.packageManager.getPackageInfo(GOOGLE_APP_PACKAGE, 0)
         }.isSuccess
