@@ -5,6 +5,26 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// Driven by release-please via the generic updater; do not edit by hand.
+val versionMajor = 1 // x-release-please-major
+val versionMinor = 0 // x-release-please-minor
+val versionPatch = 0 // x-release-please-patch
+
+/**
+ * Release signing comes from the environment so the private key never enters the repo.
+ * Without the variables — a local build, or a fork's CI — debug falls back to the local
+ * debug keystore and release comes out unsigned.
+ */
+val signingStore: String? = System.getenv("LENSASSIST_KEYSTORE")
+val signingStorePassword: String? = System.getenv("LENSASSIST_KEYSTORE_PASSWORD")
+
+// The alias is a name, not a credential, so it is not worth a secret. And a PKCS12
+// keystore cannot hold a key password that differs from the store password — keytool
+// ignores one if you pass it — so there is nothing separate to configure there either.
+val signingKeyAlias: String = System.getenv("LENSASSIST_KEY_ALIAS") ?: "lensassist"
+
+val hasSigningKey = !signingStore.isNullOrBlank() && !signingStorePassword.isNullOrBlank()
+
 android {
     namespace = "com.ryry79261.lensassist"
     compileSdk = 36
@@ -13,17 +33,39 @@ android {
         applicationId = "com.ryry79261.lensassist"
         minSdk = 29
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+
+        // Monotonic and derived, so a semver bump is the only thing anyone edits.
+        versionCode = versionMajor * 10000 + versionMinor * 100 + versionPatch
+        versionName = "1.0.0" // x-release-please-version
+    }
+
+    signingConfigs {
+        if (hasSigningKey) {
+            create("sideload") {
+                storeFile = file(signingStore!!)
+                storePassword = signingStorePassword
+                keyAlias = signingKeyAlias
+                keyPassword = signingStorePassword
+            }
+        }
     }
 
     buildTypes {
+        debug {
+            // Same key as release when one is available. Otherwise every CI run signs
+            // with a freshly generated debug keystore and successive APKs refuse to
+            // upgrade each other.
+            if (hasSigningKey) signingConfig = signingConfigs.getByName("sideload")
+        }
         release {
+            // Left off deliberately: the app is a handful of classes, and R8 buys
+            // nothing here worth the risk to manifest-instantiated services.
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            if (hasSigningKey) signingConfig = signingConfigs.getByName("sideload")
         }
     }
 

@@ -26,6 +26,76 @@ CI (`.github/workflows/build.yml`) runs the same command on every push and uploa
 APK as a build artifact, so you can grab a built APK from the Actions run instead of
 setting up a local Android toolchain.
 
+## Releases and signing
+
+Versioning is automated with [release-please](https://github.com/googleapis/release-please).
+Land Conventional Commits on `main` (`feat:`, `fix:`, `feat!:`) and it keeps a release PR
+open with the next version and a generated `CHANGELOG.md`. Merge that PR and it tags the
+release, after which CI builds a **signed** release APK and attaches it to the GitHub
+Release.
+
+`versionName` and the three `versionMajor` / `versionMinor` / `versionPatch` values in
+`app/build.gradle.kts` are rewritten by release-please through its generic updater — the
+`// x-release-please-*` comments mark the lines. `versionCode` is derived from them
+(`major * 10000 + minor * 100 + patch`), so it is monotonic without anyone editing it.
+Don't hand-edit any of those lines.
+
+### One-time keystore setup
+
+Release builds need a stable signing key. It also fixes a real annoyance on the debug
+side: without one, every CI run generates its own throwaway debug key, so successive
+APKs refuse to install over each other and you have to uninstall first each time.
+
+Generate a keystore — keep it somewhere safe and **out of this repository**. One line,
+no continuations, because a line-continuation backslash that survives a copy-paste badly
+produces a confusing mess. The password must be at least 6 characters:
+
+```bash
+read -rsp 'Keystore password (6+ chars): ' KSPASS; echo
+```
+
+```bash
+keytool -genkeypair -v -keystore lensassist-sideload.jks -alias lensassist -keyalg RSA -keysize 4096 -validity 10000 -storetype PKCS12 -storepass "$KSPASS" -dname 'CN=LensAssist, OU=Sideload, O=LensAssist, C=GB'
+```
+
+`-dname` supplies the certificate identity up front. Leave it out and keytool
+interrogates you for a name, organisation and country first — none of which matters for
+a key that only ever signs sideloaded builds.
+
+Base64-encode it as a single line:
+
+```bash
+base64 -w0 lensassist-sideload.jks              # Linux
+base64 -i lensassist-sideload.jks | tr -d '\n'  # macOS
+```
+
+Add two repository secrets under `Settings → Secrets and variables → Actions`:
+
+| Secret | Value |
+| --- | --- |
+| `SIGNING_KEYSTORE_BASE64` | the base64 blob from above |
+| `SIGNING_KEYSTORE_PASSWORD` | the password you gave keytool |
+
+That is the whole list. The alias is a name rather than a credential, so it is
+hardcoded as `lensassist` (override with `LENSASSIST_KEY_ALIAS` if you chose another),
+and a PKCS12 keystore cannot carry a key password that differs from the store
+password — keytool ignores a separate `-keypass` — so there is nothing else to set.
+
+Back up the `.jks` file. Losing it means future builds get a different signature and can
+no longer upgrade an installed copy — you would have to uninstall and reinstall, and any
+saved preference goes with it.
+
+The release job fails fast when these secrets are missing rather than attaching an
+unsigned APK nobody can install. The debug job treats them as optional.
+
+Builds pick the key up from the environment, so a local signed build is just:
+
+```bash
+LENSASSIST_KEYSTORE=$PWD/lensassist-sideload.jks \
+LENSASSIST_KEYSTORE_PASSWORD=... \
+./gradlew assembleRelease
+```
+
 ## Install
 
 ```bash
