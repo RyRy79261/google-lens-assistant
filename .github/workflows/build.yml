@@ -11,6 +11,12 @@ jobs:
     name: assembleDebug
     runs-on: ubuntu-latest
 
+    env:
+      SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+      LENSASSIST_KEYSTORE_PASSWORD: ${{ secrets.SIGNING_KEYSTORE_PASSWORD }}
+      LENSASSIST_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+      LENSASSIST_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -21,6 +27,15 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      # Optional here, unlike the release job: without it the build still works, it
+      # just falls back to a throwaway debug key that differs on every runner, so
+      # successive APKs will not install over each other.
+      - name: Decode signing keystore
+        if: env.SIGNING_KEYSTORE_BASE64 != ''
+        run: |
+          printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/sideload.jks"
+          echo "LENSASSIST_KEYSTORE=$RUNNER_TEMP/sideload.jks" >> "$GITHUB_ENV"
+
       - name: Assemble debug APK
         run: ./gradlew assembleDebug --stacktrace
 
@@ -29,3 +44,7 @@ jobs:
           name: lensassist-debug-apk
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+      - name: Remove the keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sideload.jks"
