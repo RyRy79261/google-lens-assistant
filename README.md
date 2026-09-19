@@ -40,6 +40,17 @@ Release.
 (`major * 10000 + minor * 100 + patch`), so it is monotonic without anyone editing it.
 Don't hand-edit any of those lines.
 
+### One-time repository setting
+
+release-please opens its release PR using the workflow's built-in token, and GitHub
+blocks that by default. Under `Settings → Actions → General → Workflow permissions`,
+enable **Allow GitHub Actions to create and approve pull requests**.
+
+Without it the release job fails at the very last step with *"GitHub Actions is not
+permitted to create or approve pull requests"* — after it has already pushed the
+`release-please--branches--main` branch, so the work is done and only the PR is missing.
+You can open that branch as a PR by hand if you would rather not change the setting.
+
 ### One-time keystore setup
 
 Release builds need a stable signing key. It also fixes a real annoyance on the debug
