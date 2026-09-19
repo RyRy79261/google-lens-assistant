@@ -14,8 +14,8 @@
 
     <string name="diag_heading">Diagnostics</string>
     <string name="diag_refresh">Refresh</string>
-    <string name="diag_resolved_none">ACTION_SEND image/png handler in the Google app: none found</string>
-    <string name="diag_resolved">ACTION_SEND image/png handler in the Google app:\n%1$s</string>
+    <string name="diag_resolved_none">ACTION_SEND image/png handlers in the Google app: none found</string>
+    <string name="diag_resolved">ACTION_SEND image/png handlers in the Google app (%1$d):\n%2$s</string>
     <string name="diag_google_app_missing">The Google app (com.google.android.googlequicksearchbox) is not installed.</string>
     <string name="diag_last_shot">Last screenshot from the system: %1$d × %2$d px (%3$s)</string>
     <string name="diag_last_shot_none">Last screenshot from the system: none yet</string>
@@ -35,6 +35,6 @@
     <string name="err_test_image">Could not read the bundled test image.</string>
     <string name="err_settings">No settings screen on this device would open. Set the assistance app manually under Settings.</string>
 
-    <string name="route_direct">sent to %1$s</string>
-    <string name="route_chooser">no Google app handler; opened the share sheet</string>
+    <string name="route_direct">sent straight to %1$s</string>
+    <string name="route_chooser">%1$d handlers matched and none looked like Lens; opened the share sheet</string>
 </resources>

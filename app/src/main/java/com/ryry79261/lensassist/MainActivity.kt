@@ -71,8 +71,15 @@ class MainActivity : AppCompatActivity() {
             !LensLauncher.googleAppInstalled(this) ->
                 getString(R.string.diag_google_app_missing)
 
-            else -> LensLauncher.resolvedTarget(this)
-                ?.let { getString(R.string.diag_resolved, it) }
+            else -> LensLauncher.candidates(this)
+                .takeIf { it.isNotEmpty() }
+                ?.let { targets ->
+                    getString(
+                        R.string.diag_resolved,
+                        targets.size,
+                        targets.joinToString("\n") { "  ${it.name}" },
+                    )
+                }
                 ?: getString(R.string.diag_resolved_none)
         }
 
