@@ -8,7 +8,7 @@ plugins {
 // Driven by release-please via the generic updater; do not edit by hand.
 val versionMajor = 1 // x-release-please-major
 val versionMinor = 0 // x-release-please-minor
-val versionPatch = 0 // x-release-please-patch
+val versionPatch = 1 // x-release-please-patch
 
 /**
  * Release signing comes from the environment so the private key never enters the repo.
@@ -36,7 +36,7 @@ android {
 
         // Monotonic and derived, so a semver bump is the only thing anyone edits.
         versionCode = versionMajor * 10000 + versionMinor * 100 + versionPatch
-        versionName = "1.0.0" // x-release-please-version
+        versionName = "1.0.1" // x-release-please-version
     }
 
     signingConfigs {
