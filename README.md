@@ -46,16 +46,21 @@ Release builds need a stable signing key. It also fixes a real annoyance on the 
 side: without one, every CI run generates its own throwaway debug key, so successive
 APKs refuse to install over each other and you have to uninstall first each time.
 
-Generate a keystore — keep it somewhere safe and **out of this repository**:
+Generate a keystore — keep it somewhere safe and **out of this repository**. One line,
+no continuations, because a line-continuation backslash that survives a copy-paste badly
+produces a confusing mess. The password must be at least 6 characters:
 
 ```bash
-keytool -genkeypair -v \
-  -keystore lensassist-sideload.jks \
-  -alias lensassist \
-  -keyalg RSA -keysize 4096 \
-  -validity 10000 \
-  -storetype PKCS12
+read -rsp 'Keystore password (6+ chars): ' KSPASS; echo
 ```
+
+```bash
+keytool -genkeypair -v -keystore lensassist-sideload.jks -alias lensassist -keyalg RSA -keysize 4096 -validity 10000 -storetype PKCS12 -storepass "$KSPASS" -dname 'CN=LensAssist, OU=Sideload, O=LensAssist, C=GB'
+```
+
+`-dname` supplies the certificate identity up front. Leave it out and keytool
+interrogates you for a name, organisation and country first — none of which matters for
+a key that only ever signs sideloaded builds.
 
 Base64-encode it as a single line:
 
