@@ -86,7 +86,7 @@ class LensSession(context: Context) : VoiceInteractionSession(context) {
 
         Diagnostics.recordScreenshot(context, screenshot)
 
-        val result = LensLauncher.send(context, screenshot, starter())
+        val result = LensLauncher.send(context, screenshot, ::start)
         if (result is LensLauncher.Result.Failed) {
             Toast.makeText(
                 context,
@@ -100,11 +100,17 @@ class LensSession(context: Context) : VoiceInteractionSession(context) {
         hide()
     }
 
-    private fun starter(): (Intent) -> Unit =
+    /**
+     * Both calls are legal from a shown session. Which one leaves Back returning to the
+     * app the user came from is device behaviour rather than documented API, so it stays
+     * switchable from the launcher screen.
+     */
+    private fun start(intent: Intent) {
         when (Diagnostics.launchStrategy(context)) {
-            LaunchStrategy.NEW_TASK -> { intent -> context.startActivity(intent) }
-            LaunchStrategy.ASSISTANT -> { intent -> startAssistantActivity(intent) }
+            LaunchStrategy.NEW_TASK -> context.startActivity(intent)
+            LaunchStrategy.ASSISTANT -> startAssistantActivity(intent)
         }
+    }
 
     private companion object {
         const val SCREENSHOT_TIMEOUT_MS = 1_500L

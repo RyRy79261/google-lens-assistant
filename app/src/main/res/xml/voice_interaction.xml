@@ -3,5 +3,4 @@
     android:recognitionService="com.ryry79261.lensassist.StubRecognitionService"
     android:sessionService="com.ryry79261.lensassist.LensSessionService"
     android:supportsAssist="true"
-    android:supportsLaunchVoiceAssistFromKeyguard="false"
     android:supportsLocalInteraction="false" />
