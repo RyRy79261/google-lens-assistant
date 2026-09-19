@@ -117,7 +117,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun sendTestImage() {
-        val bitmap = BitmapFactory.decodeResource(resources, R.raw.sample_card)
+        // Decoded without density scaling: the test card is a fixed-size image, and
+        // letting the framework rescale it would change what Lens is asked to read.
+        val options = BitmapFactory.Options().apply { inScaled = false }
+        val bitmap = resources.openRawResource(R.raw.sample_card).use {
+            BitmapFactory.decodeStream(it, null, options)
+        }
         if (bitmap == null) {
             Toast.makeText(this, R.string.err_test_image, Toast.LENGTH_LONG).show()
             return
