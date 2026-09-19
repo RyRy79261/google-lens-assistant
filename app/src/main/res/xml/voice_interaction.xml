@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<voice-interaction-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:recognitionService="com.ryry79261.lensassist.StubRecognitionService"
+    android:sessionService="com.ryry79261.lensassist.LensSessionService"
+    android:supportsAssist="true"
+    android:supportsLocalInteraction="false" />

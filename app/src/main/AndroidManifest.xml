@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      No INTERNET permission: the screenshot only ever travels to the Google app
+      through a content:// URI, never off the device by our hand.
+    -->
+
+    <!--
+      Package visibility (API 30+). Without this, resolveActivity() against the
+      Google app returns null and setPackage() targets nothing.
+    -->
+    <queries>
+        <package android:name="com.google.android.googlequicksearchbox" />
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="image/png" />
+        </intent>
+    </queries>
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.LensAssist">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".LensVoiceInteractionService"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_VOICE_INTERACTION">
+            <intent-filter>
+                <action android:name="android.service.voice.VoiceInteractionService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.voice_interaction"
+                android:resource="@xml/voice_interaction" />
+        </service>
+
+        <service
+            android:name=".LensSessionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION">
+            <intent-filter>
+                <action android:name="android.service.voice.VoiceInteractionSessionService" />
+            </intent-filter>
+        </service>
+
+        <!--
+          Never actually recognises anything. It exists because
+          voice_interaction.xml must name a RecognitionService in this package,
+          and because the assistant picker only lists apps that declare one.
+        -->
+        <service
+            android:name=".StubRecognitionService"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.speech.RecognitionService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.speech"
+                android:resource="@xml/recognition_service" />
+        </service>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+</manifest>

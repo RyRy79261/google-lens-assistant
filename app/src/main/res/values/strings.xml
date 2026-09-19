@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LensAssist</string>
+
+    <string name="status_held">LensAssist is the device assistant.</string>
+    <string name="status_not_held">LensAssist is NOT the device assistant.</string>
+    <string name="status_unknown">Assistant role status unavailable on this device.</string>
+
+    <string name="setup_heading">Setup</string>
+    <string name="setup_body">1. Open the assistant settings below and set the device assistance app to LensAssist.\n\n2. In the same screen, turn on the screen-context and screenshot toggles. One UI 5.1 labels these under the assistance app\'s settings gear — look for “Use screen context” / “Use screenshot”, or Samsung\'s equivalent wording such as “Allow access to screen content”.\n\n3. Long-press Home (3-button nav) or swipe in from a bottom corner (gesture nav) to invoke.\n\nWithout the screenshot toggle the system never sends an image and LensAssist will say so instead of opening Lens.</string>
+
+    <string name="btn_open_settings">Open assistant settings</string>
+    <string name="btn_test">Send test image to Lens</string>
+
+    <string name="diag_heading">Diagnostics</string>
+    <string name="diag_refresh">Refresh</string>
+    <string name="diag_resolved_none">ACTION_SEND image/png handler in the Google app: none found</string>
+    <string name="diag_resolved">ACTION_SEND image/png handler in the Google app:\n%1$s</string>
+    <string name="diag_google_app_missing">The Google app (com.google.android.googlequicksearchbox) is not installed.</string>
+    <string name="diag_last_shot">Last screenshot from the system: %1$d × %2$d px (%3$s)</string>
+    <string name="diag_last_shot_none">Last screenshot from the system: none yet</string>
+    <string name="diag_last_route">Last launch: %1$s</string>
+    <string name="diag_last_route_none">Last launch: none yet</string>
+
+    <string name="strategy_heading">Launch path (affects where Back goes from Lens)</string>
+    <string name="strategy_new_task">context.startActivity — Lens gets its own task</string>
+    <string name="strategy_assistant">startAssistantActivity — launch into the assistant stack</string>
+
+    <string name="chooser_title">Send screen to…</string>
+
+    <string name="err_screenshot_disabled">LensAssist got no screenshot: the screenshot / screen-context toggle is off for the assistance app.</string>
+    <string name="err_no_screenshot">No screenshot available — this app blocks screen capture (FLAG_SECURE), or the screenshot toggle is off.</string>
+    <string name="err_timeout">The system did not deliver a screenshot in time.</string>
+    <string name="err_launch_failed">Could not open Lens: %1$s</string>
+    <string name="err_test_image">Could not read the bundled test image.</string>
+    <string name="err_settings">No settings screen on this device would open. Set the assistance app manually under Settings.</string>
+
+    <string name="route_direct">sent to %1$s</string>
+    <string name="route_chooser">no Google app handler; opened the share sheet</string>
+</resources>
