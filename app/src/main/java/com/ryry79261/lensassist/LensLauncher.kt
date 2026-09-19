@@ -3,9 +3,12 @@ package com.ryry79261.lensassist
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipDescription
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
@@ -46,11 +49,21 @@ object LensLauncher {
             return Result.Failed("could not write the screenshot (${e.message})")
         }
 
-        val target = resolvedTarget(context)
-        val (intent, detail) = if (target != null) {
-            googleAppIntent(uri) to context.getString(R.string.route_direct, target)
+        // Pick an explicit component rather than letting the system disambiguate. The
+        // Google app exposes several image receivers, and an ambiguous intent lands on
+        // ResolverActivity, which has to forward the read grant to whatever the user
+        // picks — a step that routinely loses it.
+        val targets = candidates(context)
+        val lens = targets.firstOrNull { it.name.contains("lens", ignoreCase = true) }
+            ?: targets.singleOrNull()
+
+        val (intent, detail) = if (lens != null) {
+            val component = ComponentName(lens.packageName, lens.name)
+            googleAppIntent(uri).setComponent(component) to
+                context.getString(R.string.route_direct, component.flattenToShortString())
         } else {
-            chooserIntent(context, uri) to context.getString(R.string.route_chooser)
+            chooserIntent(context, uri) to
+                context.getString(R.string.route_chooser, targets.size)
         }
 
         return try {
@@ -68,18 +81,17 @@ object LensLauncher {
     }
 
     /**
-     * The component in the Google app that currently accepts a shared PNG, as
-     * "package/class", or null if it exposes none.
+     * Every activity in the Google app that accepts a shared PNG.
      *
-     * Deliberately resolved by package rather than pinned to a class name: Google
-     * renames these activities between releases.
+     * Resolved at runtime rather than pinned to a class name: Google renames these
+     * between releases. There is usually more than one, which is why a plain
+     * resolveActivity() on this intent answers with the system ResolverActivity —
+     * the "ambiguous, ask the user" sentinel — rather than a real target.
      */
-    fun resolvedTarget(context: Context): String? {
-        val info = context.packageManager.resolveActivityCompat(googleAppIntent(Uri.EMPTY))
-            ?: return null
-        val activity = info.activityInfo ?: return null
-        return "${activity.packageName}/${activity.name}"
-    }
+    fun candidates(context: Context): List<ActivityInfo> =
+        context.packageManager
+            .queryIntentActivitiesCompat(googleAppIntent(Uri.EMPTY))
+            .mapNotNull { it.activityInfo }
 
     fun googleAppInstalled(context: Context): Boolean =
         runCatching {
@@ -93,6 +105,10 @@ object LensLauncher {
     private fun shareIntent(uri: Uri): Intent = Intent(Intent.ACTION_SEND).apply {
         type = MIME
         putExtra(Intent.EXTRA_STREAM, uri)
+        // filterEquals() ignores extras and ClipData, so two sends look identical to
+        // the system and the second one just re-surfaces the already-running task with
+        // its original image. The identifier is what makes them distinct.
+        identifier = uri.toString()
         // Receivers disagree about where to look for the image, and the clip is also
         // what carries the read grant through the share sheet.
         clipData = ClipData(ClipDescription("screenshot", arrayOf(MIME)), ClipData.Item(uri))
@@ -113,5 +129,5 @@ object LensLauncher {
 }
 
 @Suppress("DEPRECATION")
-private fun PackageManager.resolveActivityCompat(intent: Intent) =
-    resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+private fun PackageManager.queryIntentActivitiesCompat(intent: Intent): List<ResolveInfo> =
+    queryIntentActivities(intent, 0)

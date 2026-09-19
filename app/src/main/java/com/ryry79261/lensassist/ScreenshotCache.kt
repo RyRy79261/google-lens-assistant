@@ -17,7 +17,13 @@ import java.io.FileOutputStream
 object ScreenshotCache {
 
     private const val DIR = "screens"
-    private const val KEEP = 2
+
+    /**
+     * How long a staged PNG is assumed to still be in use. Lens holds the URI for as
+     * long as it is showing the image, which can be long after the next invocation, so
+     * pruning is by age rather than by count.
+     */
+    private const val KEEP_MILLIS = 30 * 60 * 1000L
 
     fun write(context: Context, bitmap: Bitmap): Uri {
         val dir = File(context.cacheDir, DIR)
@@ -34,9 +40,13 @@ object ScreenshotCache {
     }
 
     private fun prune(dir: File) {
+        val cutoff = System.currentTimeMillis() - KEEP_MILLIS
         dir.listFiles()
             ?.sortedByDescending(File::lastModified)
-            ?.drop(KEEP - 1)
+            // The newest survives regardless of age: whatever is on screen right now
+            // is reading it.
+            ?.drop(1)
+            ?.filter { it.lastModified() < cutoff }
             ?.forEach { it.delete() }
     }
 }
